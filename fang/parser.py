@@ -69,12 +69,19 @@ class SshLogParser:
     ) -> None:
         self.reference_year = reference_year or datetime.now(timezone.utc).year
         self.tz = tz
+        self.lines_read = 0
 
     def parse_file(self, file_path: str | Path) -> Iterator[SshAuthEvent]:
         """
-        Stream events from an auth.log file.
-        Supports both plaintext and gzip-compressed (.gz) files.
+        Stream events from an auth.log file or stdin.
+        Supports plaintext, gzip-compressed (.gz) files, and stdin ('-').
         """
+        if str(file_path) == "-":
+            import sys
+
+            yield from self.parse_stream(sys.stdin)
+            return
+
         path = Path(file_path)
         if not path.exists():
             raise FileNotFoundError(f"Log file not found: {path}")
@@ -99,6 +106,7 @@ class SshLogParser:
     def parse_stream(self, stream: TextIO) -> Iterator[SshAuthEvent]:
         """Parse events line-by-line from any text stream."""
         for line_number, line in enumerate(stream, start=1):
+            self.lines_read = line_number
             event = self.parse_line(line, line_number=line_number)
             if event is not None:
                 yield event
@@ -129,6 +137,8 @@ class SshLogParser:
         m_rfc = RE_RFC3339_PREFIX.match(line)
         if m_rfc:
             ts_str = m_rfc.group(1).replace("Z", "+00:00")
+            if len(ts_str) >= 5 and ts_str[-5] in "+-" and ts_str[-3] != ":":
+                ts_str = ts_str[:-2] + ":" + ts_str[-2:]
             try:
                 dt = datetime.fromisoformat(ts_str)
                 if dt.tzinfo is None:
