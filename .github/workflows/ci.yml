@@ -32,17 +32,18 @@ jobs:
 
       - name: Check code formatting with Black
         run: |
-          black --check fang tests
+          black --check fang tests scripts
 
-      - name: Run test suite
+      - name: Run test suite with coverage
         run: |
-          pytest -v --tb=short
+          pytest -v --tb=short --cov=fang
 
-      - name: Smoke test CLI
+      - name: Smoke test CLI and synthetic benchmark
         run: |
           fang --help
           python -m fang.cli -l tests/fixtures/auth_classic.log -t 5 -w 60
           python -m fang.cli -l tests/fixtures/auth_rfc3339.log -t 5 -w 60 -o ci_report.json
+          python scripts/benchmark_synthetic.py --lines 500
 
   build:
     runs-on: ubuntu-latest
