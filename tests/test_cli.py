@@ -90,3 +90,45 @@ def test_cli_main_exit_code_on_alert(classic_log_path: Path) -> None:
 def test_cli_main_file_not_found() -> None:
     exit_code = main(["--log-file", "non_existent_file_xyz.log"])
     assert exit_code == 1
+
+
+def test_cli_stdin_reading(monkeypatch, classic_log_path: Path) -> None:
+    import io
+
+    with open(classic_log_path, "r", encoding="utf-8") as f:
+        log_content = f.read()
+
+    monkeypatch.setattr("sys.stdin", io.StringIO(log_content))
+    summary, alerts = run_analyzer(log_file="-", threshold=5, window=60, quiet=True)
+
+    assert summary.log_file_path == "<stdin>"
+    assert summary.total_lines_read == 11
+    assert len(alerts) == 1
+    assert alerts[0].source_ip == "192.168.1.100"
+
+
+def test_cli_journalctl_mock(monkeypatch) -> None:
+    from unittest.mock import MagicMock
+
+    sample_journald_lines = (
+        "2026-10-28T12:00:01+0000 host sshd[1001]: Failed password for root from 198.51.100.22 port 22 ssh2\n"
+        "2026-10-28T12:00:05+0000 host sshd[1002]: Failed password for root from 198.51.100.22 port 22 ssh2\n"
+        "2026-10-28T12:00:10+0000 host sshd[1003]: Failed password for root from 198.51.100.22 port 22 ssh2\n"
+        "2026-10-28T12:00:15+0000 host sshd[1004]: Failed password for root from 198.51.100.22 port 22 ssh2\n"
+        "2026-10-28T12:00:20+0000 host sshd[1005]: Failed password for root from 198.51.100.22 port 22 ssh2\n"
+    )
+
+    mock_proc = MagicMock()
+    mock_proc.stdout = sample_journald_lines.splitlines(keepends=True)
+    mock_proc.wait.return_value = 0
+
+    monkeypatch.setattr("subprocess.Popen", lambda *args, **kwargs: mock_proc)
+
+    summary, alerts = run_analyzer(
+        use_journalctl=True, threshold=5, window=60, quiet=True
+    )
+    assert summary.log_file_path == "<journalctl>"
+    assert summary.total_lines_read == 5
+    assert len(alerts) == 1
+    assert alerts[0].source_ip == "198.51.100.22"
+    assert alerts[0].failed_attempts_count == 5

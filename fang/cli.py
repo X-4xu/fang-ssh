@@ -35,7 +35,13 @@ def build_parser() -> argparse.ArgumentParser:
         "-l",
         "--log-file",
         default="/var/log/auth.log",
-        help="Path to authentication log file (/var/log/auth.log or /var/log/secure, plaintext or .gz).",
+        help="Path to authentication log file, or '-' for stdin (/var/log/auth.log or /var/log/secure, plaintext or .gz).",
+    )
+    parser.add_argument(
+        "--journalctl",
+        "--journald",
+        action="store_true",
+        help="Read SSH authentication logs directly from systemd journald (journalctl -u ssh -u sshd -o short-iso).",
     )
     parser.add_argument(
         "-t",
@@ -97,13 +103,14 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def run_analyzer(
-    log_file: str,
+    log_file: str = "/var/log/auth.log",
     threshold: int = 5,
     window: int = 60,
     cooldown: int = 300,
     output_path: str | None = None,
     enable_net_access_hook: bool = False,
     quiet: bool = False,
+    use_journalctl: bool = False,
     console: Console | None = None,
 ) -> tuple[AnalysisSummary, list[SecurityAlert]]:
     """
@@ -111,11 +118,6 @@ def run_analyzer(
     and returns summary along with all triggered alerts.
     """
     console = console or Console()
-    summary = AnalysisSummary(
-        log_file_path=log_file,
-        scan_start_time=datetime.now(timezone.utc),
-    )
-
     parser = SshLogParser()
     detector = BruteForceDetector(
         threshold=threshold,
@@ -134,8 +136,52 @@ def run_analyzer(
     alerts: list[SecurityAlert] = []
     unique_ips: set[str] = set()
 
+    # Determine input stream
+    proc = None
+    if use_journalctl:
+        import subprocess
+
+        summary = AnalysisSummary(
+            log_file_path="<journalctl>",
+            scan_start_time=datetime.now(timezone.utc),
+        )
+        try:
+            proc = subprocess.Popen(
+                [
+                    "journalctl",
+                    "-u",
+                    "ssh",
+                    "-u",
+                    "sshd",
+                    "-o",
+                    "short-iso",
+                    "--no-pager",
+                ],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                errors="replace",
+            )
+        except FileNotFoundError as err:
+            raise FileNotFoundError(
+                "journalctl command not found. Ensure systemd-journald is installed."
+            ) from err
+        event_stream = parser.parse_stream(proc.stdout)
+    elif log_file == "-":
+        summary = AnalysisSummary(
+            log_file_path="<stdin>",
+            scan_start_time=datetime.now(timezone.utc),
+        )
+        event_stream = parser.parse_stream(sys.stdin)
+    else:
+        summary = AnalysisSummary(
+            log_file_path=log_file,
+            scan_start_time=datetime.now(timezone.utc),
+        )
+        event_stream = parser.parse_file(log_file)
+
     # Stream parse the log file
-    for event in parser.parse_file(log_file):
+    for event in event_stream:
         summary.total_events_parsed += 1
         unique_ips.add(event.source_ip)
 
@@ -150,17 +196,10 @@ def run_analyzer(
                     except Exception as err:
                         logger.error("Handler %s error: %s", h.__class__.__name__, err)
 
-    # Calculate final line count
-    path = Path(log_file)
-    if path.suffix == ".gz":
-        import gzip
+    if proc is not None:
+        proc.wait()
 
-        with gzip.open(path, "rt", errors="replace") as f:
-            summary.total_lines_read = sum(1 for _ in f)
-    else:
-        with open(path, "r", encoding="utf-8", errors="replace") as f:
-            summary.total_lines_read = sum(1 for _ in f)
-
+    summary.total_lines_read = parser.lines_read
     summary.unique_source_ips = len(unique_ips)
     summary.alerts_triggered = len(alerts)
     summary.scan_end_time = datetime.now(timezone.utc)
@@ -186,27 +225,35 @@ def main(argv: list[str] | None = None) -> int:
         level=log_level, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
     )
 
-    # Validate file existence before starting
     err_console = Console(stderr=True)
-    target_file = Path(args.log_file)
-    if not target_file.exists():
-        err_console.print(
-            f"[bold red]Error:[/bold red] Log file not found at '{target_file}'.\n"
-            "  * On Debian/Ubuntu: default is [cyan]/var/log/auth.log[/cyan]\n"
-            "  * On RHEL/CentOS: use [cyan]--log-file /var/log/secure[/cyan]\n"
-            "  * To analyze a test file: use [cyan]--log-file <path-to-file>[/cyan]"
-        )
-        return 1
+
+    # Validate file existence before starting unless using stdin or journalctl
+    if not args.journalctl and args.log_file != "-":
+        target_file = Path(args.log_file)
+        if not target_file.exists():
+            err_console.print(
+                f"[bold red]Error:[/bold red] Log file not found at '{target_file}'.\n"
+                "  * On Debian/Ubuntu: default is [cyan]/var/log/auth.log[/cyan]\n"
+                "  * On RHEL/CentOS: use [cyan]--log-file /var/log/secure[/cyan]\n"
+                "  * To read from stdin: use [cyan]--log-file -[/cyan]\n"
+                "  * To read journald: use [cyan]--journalctl[/cyan]\n"
+                "  * To analyze a test file: use [cyan]--log-file <path-to-file>[/cyan]"
+            )
+            return 1
+        target_str = str(target_file)
+    else:
+        target_str = args.log_file
 
     try:
         summary, alerts = run_analyzer(
-            log_file=str(target_file),
+            log_file=target_str,
             threshold=args.threshold,
             window=args.window,
             cooldown=args.cooldown,
             output_path=args.output,
             enable_net_access_hook=args.enable_net_access_hook,
             quiet=args.quiet,
+            use_journalctl=args.journalctl,
             console=console,
         )
 

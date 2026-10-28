@@ -59,6 +59,21 @@ def test_parse_rfc3339_timestamp() -> None:
     assert event.timestamp.tzinfo is not None
 
 
+def test_parse_journalctl_short_iso_timestamp() -> None:
+    parser = SshLogParser()
+    line = "2026-10-28T12:00:01+0000 srv sshd[1001]: Failed password for root from 198.51.100.22 port 22 ssh2"
+    event = parser.parse_line(line)
+
+    assert event is not None
+    assert event.event_type == EventType.FAILED_PASSWORD
+    assert event.source_ip == "198.51.100.22"
+    assert event.username == "root"
+    assert event.timestamp.year == 2026
+    assert event.timestamp.month == 10
+    assert event.timestamp.day == 28
+    assert event.timestamp.hour == 12
+
+
 def test_parse_pam_failure() -> None:
     parser = SshLogParser()
     line = "2026-09-19T08:12:15.700000+00:00 bastion sshd[3007]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=203.0.113.42  user=admin"
