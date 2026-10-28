@@ -95,6 +95,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Enable detailed debug logging.",
     )
     parser.add_argument(
+        "--no-root-escalation",
+        action="store_true",
+        help="Disable automatic severity inflation to HIGH for root/admin targeted attempts.",
+    )
+    parser.add_argument(
         "--exit-code-on-alert",
         action="store_true",
         help="Exit with return code 2 if any security alert is triggered (useful for CI/CD or automation).",
@@ -118,6 +123,7 @@ def run_analyzer(
     quiet: bool = False,
     use_journalctl: bool = False,
     follow: bool = False,
+    escalate_privileged: bool = True,
     stop_event: Any | None = None,
     console: Console | None = None,
 ) -> tuple[AnalysisSummary, list[SecurityAlert]]:
@@ -131,6 +137,7 @@ def run_analyzer(
         threshold=threshold,
         window_seconds=window,
         cooldown_seconds=cooldown,
+        escalate_privileged=escalate_privileged,
     )
 
     # Initialize handlers
@@ -201,14 +208,15 @@ def run_analyzer(
 
         if event.event_type.is_failure:
             summary.failed_attempts_count += 1
-            alert = detector.process_event(event)
-            if alert:
-                alerts.append(alert)
-                for h in handlers:
-                    try:
-                        h.handle_alert(alert)
-                    except Exception as err:
-                        logger.error("Handler %s error: %s", h.__class__.__name__, err)
+
+        alert = detector.process_event(event)
+        if alert:
+            alerts.append(alert)
+            for h in handlers:
+                try:
+                    h.handle_alert(alert)
+                except Exception as err:
+                    logger.error("Handler %s error: %s", h.__class__.__name__, err)
 
     if proc is not None:
         proc.wait()
@@ -269,6 +277,7 @@ def main(argv: list[str] | None = None) -> int:
             quiet=args.quiet,
             use_journalctl=args.journalctl,
             follow=args.follow,
+            escalate_privileged=not args.no_root_escalation,
             console=console,
         )
 
