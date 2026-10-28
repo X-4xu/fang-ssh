@@ -36,9 +36,10 @@ def malformed_log_path(fixtures_dir: Path) -> Path:
 
 
 @pytest.fixture(scope="session")
-def gzip_log_path(fixtures_dir: Path, classic_log_path: Path) -> Path:
+def gzip_log_path(tmp_path_factory: pytest.TempPathFactory, classic_log_path: Path) -> Path:
     """Create a temporary .gz version of classic_log for testing compressed parsing."""
-    gz_path = fixtures_dir / "auth_classic.log.gz"
+    tmp_dir = tmp_path_factory.mktemp("fixtures")
+    gz_path = tmp_dir / "auth_classic.log.gz"
     with open(classic_log_path, "rb") as f_in:
         with gzip.open(gz_path, "wb") as f_out:
             f_out.writelines(f_in)
