@@ -5,10 +5,11 @@ Command-line interface for SSH Log Analyzer.
 from __future__ import annotations
 
 import argparse
-from datetime import datetime, timezone
 import logging
-from pathlib import Path
 import sys
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
 
 from rich.console import Console
 
@@ -100,6 +101,23 @@ def build_parser() -> argparse.ArgumentParser:
         help="Disable automatic severity inflation to HIGH for root/admin targeted attempts.",
     )
     parser.add_argument(
+        "--distributed-threshold",
+        type=int,
+        default=5,
+        help="Number of distinct source IPs targeting a single user required to trigger a distributed spray alert (default: 5).",
+    )
+    parser.add_argument(
+        "--no-distributed",
+        action="store_true",
+        help="Disable multi-IP distributed brute-force / password spraying detection.",
+    )
+    parser.add_argument(
+        "--max-evidence-lines",
+        type=int,
+        default=50,
+        help="Maximum raw log lines to embed in each alert evidence report (default: 50).",
+    )
+    parser.add_argument(
         "--exit-code-on-alert",
         action="store_true",
         help="Exit with return code 2 if any security alert is triggered (useful for CI/CD or automation).",
@@ -124,6 +142,9 @@ def run_analyzer(
     use_journalctl: bool = False,
     follow: bool = False,
     escalate_privileged: bool = True,
+    detect_distributed: bool = True,
+    distributed_threshold: int = 5,
+    max_evidence_lines: int = 50,
     stop_event: Any | None = None,
     console: Console | None = None,
 ) -> tuple[AnalysisSummary, list[SecurityAlert]]:
@@ -138,6 +159,9 @@ def run_analyzer(
         window_seconds=window,
         cooldown_seconds=cooldown,
         escalate_privileged=escalate_privileged,
+        detect_distributed=detect_distributed,
+        distributed_threshold=distributed_threshold,
+        max_evidence_events=max_evidence_lines,
     )
 
     # Initialize handlers
@@ -278,6 +302,9 @@ def main(argv: list[str] | None = None) -> int:
             use_journalctl=args.journalctl,
             follow=args.follow,
             escalate_privileged=not args.no_root_escalation,
+            detect_distributed=not args.no_distributed,
+            distributed_threshold=args.distributed_threshold,
+            max_evidence_lines=args.max_evidence_lines,
             console=console,
         )
 

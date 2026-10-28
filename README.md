@@ -263,6 +263,9 @@ fang -l /var/log/auth.log --exit-code-on-alert -q -o report.json
 | `--cooldown` | `-c` | `300` | Cooldown period in seconds per source IP to prevent alert spam. |
 | `--output` | `-o` | `None` | Path to save the structured JSON report. |
 | `--no-root-escalation` | | `False` | Disable automatic severity inflation to HIGH for root/admin targets. |
+| `--distributed-threshold` | | `5` | Number of distinct source IPs targeting a single user required to trigger a distributed spray alert. |
+| `--no-distributed` | | `False` | Disable multi-IP distributed brute-force / password spraying detection. |
+| `--max-evidence-lines` | | `50` | Maximum raw log lines to embed in each alert evidence report (caps JSON size during high-volume floods). |
 | `--quiet` | `-q` | `False` | Suppress alert panels; show only the summary table. |
 | `--verbose` | `-v` | `False` | Enable verbose debug logging. |
 | `--exit-code-on-alert` | | `False` | Exit with return code `2` if an alert is detected. |
@@ -354,9 +357,16 @@ On a reference workstation (Windows 11, Intel/AMD x86_64, Python 3.13):
 
 ## Testing & CI Verification
 
-Fang maintains an automated test suite covering classic syslog, RFC 3339, and journald log formats, live `--follow` file truncation and rotation handling, compromise detection, and synthetic benchmarking.
+Fang maintains an automated suite of **49 test cases** covering:
+- Single-source burst thresholds and sliding-window timestamp eviction.
+- Multi-IP distributed password spray detection.
+- Compromise correlation (accepted login following failures).
+- Real-time `--follow` mode with log file rotation and truncation handling.
+- Gzip compressed archive and stdin pipeline streaming.
+- False positive resistance (slow attempts, interleaved benign sessions, malformed/corrupted lines).
+- JSON export integrity, deterministic alert IDs, bounded evidence sizes, and SIEM/ECS taxonomy.
 
-Every commit and pull request is automatically verified across a matrix of **Python 3.10, 3.11, 3.12, and 3.13** on Ubuntu runners via GitHub Actions.
+Every commit and pull request is automatically verified across a matrix of **Python 3.10, 3.11, 3.12, and 3.13** on Ubuntu runners via GitHub Actions, including formatting checks (Black), static linting (Ruff), and dependency vulnerability auditing (pip-audit).
 
 ```bash
 # Run full test suite
@@ -364,6 +374,13 @@ pytest -v
 
 # Run test suite with statement coverage report
 pytest --cov=fang --cov-report=term-missing
+
+# Run code style and static analysis checks
+black --check fang tests scripts
+ruff check fang tests scripts
+
+# Run dependency vulnerability audit
+pip-audit .
 ```
 
 ---

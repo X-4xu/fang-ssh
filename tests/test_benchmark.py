@@ -10,14 +10,17 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from scripts.benchmark_synthetic import generate_synthetic_logs, run_benchmark
+from scripts.benchmark_synthetic import (
+    generate_synthetic_logs,
+    run_benchmark,
+)  # noqa: E402
 
 
 def test_generate_synthetic_logs_count() -> None:
     lines = generate_synthetic_logs(150)
     assert len(lines) == 150
     # Assert lines are non-empty strings
-    assert all(isinstance(l, str) and len(l) > 10 for l in lines)
+    assert all(isinstance(line, str) and len(line) > 10 for line in lines)
 
 
 def test_run_benchmark_metrics() -> None:

@@ -34,9 +34,18 @@ jobs:
         run: |
           black --check fang tests scripts
 
+      - name: Static analysis with Ruff
+        run: |
+          ruff check fang tests scripts
+
       - name: Run test suite with coverage
         run: |
-          pytest -v --tb=short --cov=fang
+          pytest -v --tb=short --cov=fang --cov-report=term-missing
+
+      - name: Dependency vulnerability audit
+        run: |
+          pip install pip-audit
+          pip-audit .
 
       - name: Smoke test CLI and synthetic benchmark
         run: |

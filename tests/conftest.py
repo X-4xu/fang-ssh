@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import gzip
 from pathlib import Path
+
 import pytest
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
@@ -42,7 +43,6 @@ def gzip_log_path(
     """Create a temporary .gz version of classic_log for testing compressed parsing."""
     tmp_dir = tmp_path_factory.mktemp("fixtures")
     gz_path = tmp_dir / "auth_classic.log.gz"
-    with open(classic_log_path, "rb") as f_in:
-        with gzip.open(gz_path, "wb") as f_out:
-            f_out.writelines(f_in)
+    with open(classic_log_path, "rb") as f_in, gzip.open(gz_path, "wb") as f_out:
+        f_out.writelines(f_in)
     return gz_path

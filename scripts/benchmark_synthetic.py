@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import argparse
 import io
-import os
 import platform
 import random
 import sys
@@ -22,8 +21,8 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from fang.detector import BruteForceDetector
-from fang.parser import SshLogParser
+from fang.detector import BruteForceDetector  # noqa: E402
+from fang.parser import SshLogParser  # noqa: E402
 
 SAMPLE_USERS = [
     "root",

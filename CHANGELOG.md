@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-10-28
+
+### Added
+- **Distributed Attack & Password Spray Detection**: Detects multi-IP coordinated attacks targeting a single username across distinct IP addresses (`--distributed-threshold`).
+- **Deterministic Alert IDs**: Generates stable SHA-256 derived incident IDs (`ALERT-FANG-<HASH>`) for consistent tracking across audit logs and SIEM correlations.
+- **SIEM & ECS Alignment**: Exported JSON reports now include standard Elastic Common Schema (`siem` taxonomy) fields, epoch timestamps, and explicit severity reasoning chains.
+- **Bounded Evidence Windows**: Bounded raw evidence lines per incident (`--max-evidence-lines`, default: 50) to prevent memory and JSON report bloat during massive volumetric attacks.
+- **Enhanced Untrusted Input Sanitization**: Strips ANSI escape sequences and non-printable control characters from raw log lines and target usernames.
+- **Comprehensive Test Suite & Quality Gates**: Expanded test suite to 49 tests (accuracy, integration, and security edge cases) with 85% coverage, automated Ruff linting, and pip-audit vulnerability checks.
+
 ## [1.1.0] - 2026-10-28
 
 ### Added

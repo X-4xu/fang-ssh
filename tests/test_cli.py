@@ -37,7 +37,7 @@ def test_run_analyzer_classic_fixture(classic_log_path: Path, tmp_path: Path) ->
 
 
 def test_run_analyzer_rfc3339_fixture(rfc3339_log_path: Path) -> None:
-    summary, alerts = run_analyzer(
+    _summary, alerts = run_analyzer(
         log_file=str(rfc3339_log_path),
         threshold=5,
         window=60,

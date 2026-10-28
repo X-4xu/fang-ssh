@@ -4,8 +4,8 @@ Unit tests for SshLogParser.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 from pathlib import Path
+
 import pytest
 
 from fang.models import EventType

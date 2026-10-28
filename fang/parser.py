@@ -5,14 +5,14 @@ compressed .gz log files, and strict IP/event validation.
 
 from __future__ import annotations
 
-from collections.abc import Iterator
-from datetime import datetime, timezone
 import gzip
 import ipaddress
 import logging
-from pathlib import Path
 import re
-from typing import TextIO
+from collections.abc import Iterator
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, TextIO
 
 from fang.models import EventType, SshAuthEvent
 
@@ -179,7 +179,9 @@ class SshLogParser:
         if not raw_line or len(raw_line) > MAX_LINE_LENGTH:
             return None
 
-        clean_line = raw_line.strip()
+        # Sanitize control characters and ANSI escape sequences
+        clean_line = re.sub(r"\x1b\[[0-9;]*[a-zA-Z]", "", raw_line)
+        clean_line = re.sub(r"[\x00-\x08\x0b-\x1f\x7f-\x9f]", "", clean_line).strip()
         if not clean_line:
             return None
 
