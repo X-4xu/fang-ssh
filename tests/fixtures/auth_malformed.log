@@ -1,7 +1,0 @@
-This is a completely random non-syslog line.
-Sep 19 12:00:00 server sshd[10]: Failed password for user from 999.999.999.999 port 1234 ssh2
-Sep 19 12:00:01 server sshd[11]: Invalid user  from 192.168.1.1 port 1234
-Sep 19 12:00:02 server sshd[12]: Failed password for user\x00malicious from 192.168.1.1 port 1234 ssh2
-2026-99-99T99:99:99Z bad timestamp format sshd[1]: Failed password
-Sep 19 12:00:03 server otherprocess: nothing to see here
-

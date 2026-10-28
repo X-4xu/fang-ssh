@@ -1,42 +1,35 @@
-# Contributing to Fang
+# Contributing
 
-Thank you for your interest in improving `Fang`! We welcome contributions that uphold our commitment to reliable, lightweight, and secure code.
+Thanks for helping! Fang is small on purpose: standard library only, defensive-only.
 
-## Development Setup
+## Set up
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/X-4xu/fang.git
-   cd fang
-   ```
+```bash
+git clone https://github.com/X-4xu/fang.git && cd fang
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+```
 
-2. **Create a virtual environment:**
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-   ```
+## Before you open a pull request
 
-3. **Install dependencies:**
-   ```bash
-   pip install -e ".[dev]"
-   ```
+```bash
+ruff format . && ruff check .      # style and common bugs
+mypy                               # strict typing
+pytest --cov=fang                  # tests, coverage must stay >= 90 %
+```
 
-4. **Run tests:**
-   ```bash
-   pytest
-   ```
+## Rules
 
-## Development Guidelines
+- **Synthetic data only.** Test logs must use documentation addresses (`192.0.2.0/24`,
+  `198.51.100.0/24`, `203.0.113.0/24`, `2001:db8::/32`). Never commit real logs, IPs or usernames.
+- Anything read from a log is untrusted. New parsing code needs tests for forged and oversized
+  input, and must not add regexes that can backtrack badly (see `tests/test_security.py`).
+- No new runtime dependencies, no network access, no shell execution.
+- New detection behaviour needs tests for: the trigger, just below the trigger, severity,
+  cooldown/escalation, and the allowlist.
+- Update `CHANGELOG.md` for user-visible changes.
 
-- **Zero Command Execution**: Log data must remain passive text. Under no circumstances should log data be passed to `eval()`, `exec()`, or subshell execution.
-- **Fail-Safe Parsing**: Parsers must never crash on malformed, truncated, or non-ASCII log lines.
-- **Type Annotations**: All public functions, classes, and methods must have standard Python type annotations.
-- **Testing**: Every bugfix or new feature must be accompanied by unit or integration tests with sample log fixtures.
-- **Deterministic Logic**: The sliding-window detection algorithm must remain deterministic and testable.
+## Adding a log format
 
-## Submitting a Pull Request
-
-1. Create a descriptive feature branch: `git checkout -b feature/rfc3339-subseconds`
-2. Ensure all tests pass: `pytest -v`
-3. Commit with concise, descriptive messages.
-4. Submit a Pull Request targeting `main`.
+Add the regex to `src/fang/parser.py`, anchor it with `$`, take the username greedily so the
+last `from <ip> port <n>` is used, and add a line of the real format to `tests/test_parser.py`.

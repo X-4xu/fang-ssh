@@ -1,0 +1,133 @@
+Oct 25 02:00:00 web01 sshd[1001]: Accepted publickey for devops from 192.0.2.10 port 50122 ssh2: ED25519 SHA256:abcDEF123
+Oct 25 02:00:05 web01 sudo[1002]: pam_unix(sudo:session): session opened for user root by devops(uid=0)
+Oct 25 02:01:00 web01 CRON[1003]: (root) CMD (run-parts /etc/cron.hourly)
+Oct 25 02:10:00 web01 sshd[1004]: Invalid user admin from 203.0.113.42 port 40000
+Oct 25 02:10:00 web01 sshd[1005]: Failed password for invalid user admin from 203.0.113.42 port 40000 ssh2
+Oct 25 02:10:00 web01 sshd[1006]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=203.0.113.42  user=admin
+Oct 25 02:10:02 web01 sshd[1007]: Invalid user test from 203.0.113.42 port 40001
+Oct 25 02:10:02 web01 sshd[1008]: Failed password for invalid user test from 203.0.113.42 port 40001 ssh2
+Oct 25 02:10:02 web01 sshd[1009]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=203.0.113.42  user=test
+Oct 25 02:10:04 web01 sshd[1010]: Invalid user oracle from 203.0.113.42 port 40002
+Oct 25 02:10:04 web01 sshd[1011]: Failed password for invalid user oracle from 203.0.113.42 port 40002 ssh2
+Oct 25 02:10:04 web01 sshd[1012]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=203.0.113.42  user=oracle
+Oct 25 02:10:06 web01 sshd[1013]: Failed password for ubuntu from 203.0.113.42 port 40003 ssh2
+Oct 25 02:10:06 web01 sshd[1014]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=203.0.113.42  user=ubuntu
+Oct 25 02:10:08 web01 sshd[1015]: Failed password for root from 203.0.113.42 port 40004 ssh2
+Oct 25 02:10:08 web01 sshd[1016]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=203.0.113.42  user=root
+Oct 25 02:10:10 web01 sshd[1017]: Invalid user postgres from 203.0.113.42 port 40005
+Oct 25 02:10:10 web01 sshd[1018]: Failed password for invalid user postgres from 203.0.113.42 port 40005 ssh2
+Oct 25 02:10:10 web01 sshd[1019]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=203.0.113.42  user=postgres
+Oct 25 02:10:12 web01 sshd[1020]: Invalid user git from 203.0.113.42 port 40006
+Oct 25 02:10:12 web01 sshd[1021]: Failed password for invalid user git from 203.0.113.42 port 40006 ssh2
+Oct 25 02:10:12 web01 sshd[1022]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=203.0.113.42  user=git
+Oct 25 02:10:14 web01 sshd[1023]: Invalid user user from 203.0.113.42 port 40007
+Oct 25 02:10:14 web01 sshd[1024]: Failed password for invalid user user from 203.0.113.42 port 40007 ssh2
+Oct 25 02:10:14 web01 sshd[1025]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=203.0.113.42  user=user
+Oct 25 02:10:16 web01 sshd[1026]: Invalid user admin from 203.0.113.42 port 40008
+Oct 25 02:10:16 web01 sshd[1027]: Failed password for invalid user admin from 203.0.113.42 port 40008 ssh2
+Oct 25 02:10:16 web01 sshd[1028]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=203.0.113.42  user=admin
+Oct 25 02:10:18 web01 sshd[1029]: Invalid user test from 203.0.113.42 port 40009
+Oct 25 02:10:18 web01 sshd[1030]: Failed password for invalid user test from 203.0.113.42 port 40009 ssh2
+Oct 25 02:10:18 web01 sshd[1031]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=203.0.113.42  user=test
+Oct 25 02:10:20 web01 sshd[1032]: Invalid user oracle from 203.0.113.42 port 40010
+Oct 25 02:10:20 web01 sshd[1033]: Failed password for invalid user oracle from 203.0.113.42 port 40010 ssh2
+Oct 25 02:10:20 web01 sshd[1034]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=203.0.113.42  user=oracle
+Oct 25 02:10:22 web01 sshd[1035]: Failed password for ubuntu from 203.0.113.42 port 40011 ssh2
+Oct 25 02:10:22 web01 sshd[1036]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=203.0.113.42  user=ubuntu
+Oct 25 02:10:24 web01 sshd[1037]: Failed password for root from 203.0.113.42 port 40012 ssh2
+Oct 25 02:10:24 web01 sshd[1038]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=203.0.113.42  user=root
+Oct 25 02:10:26 web01 sshd[1039]: Invalid user postgres from 203.0.113.42 port 40013
+Oct 25 02:10:26 web01 sshd[1040]: Failed password for invalid user postgres from 203.0.113.42 port 40013 ssh2
+Oct 25 02:10:26 web01 sshd[1041]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=203.0.113.42  user=postgres
+Oct 25 02:10:28 web01 sshd[1042]: Invalid user git from 203.0.113.42 port 40014
+Oct 25 02:10:28 web01 sshd[1043]: Failed password for invalid user git from 203.0.113.42 port 40014 ssh2
+Oct 25 02:10:28 web01 sshd[1044]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=203.0.113.42  user=git
+Oct 25 02:10:30 web01 sshd[1045]: Invalid user user from 203.0.113.42 port 40015
+Oct 25 02:10:30 web01 sshd[1046]: Failed password for invalid user user from 203.0.113.42 port 40015 ssh2
+Oct 25 02:10:30 web01 sshd[1047]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=203.0.113.42  user=user
+Oct 25 02:10:32 web01 sshd[1048]: Invalid user admin from 203.0.113.42 port 40016
+Oct 25 02:10:32 web01 sshd[1049]: Failed password for invalid user admin from 203.0.113.42 port 40016 ssh2
+Oct 25 02:10:32 web01 sshd[1050]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=203.0.113.42  user=admin
+Oct 25 02:10:34 web01 sshd[1051]: Invalid user test from 203.0.113.42 port 40017
+Oct 25 02:10:34 web01 sshd[1052]: Failed password for invalid user test from 203.0.113.42 port 40017 ssh2
+Oct 25 02:10:34 web01 sshd[1053]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=203.0.113.42  user=test
+Oct 25 02:10:36 web01 sshd[1054]: Invalid user oracle from 203.0.113.42 port 40018
+Oct 25 02:10:36 web01 sshd[1055]: Failed password for invalid user oracle from 203.0.113.42 port 40018 ssh2
+Oct 25 02:10:36 web01 sshd[1056]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=203.0.113.42  user=oracle
+Oct 25 02:10:38 web01 sshd[1057]: Failed password for ubuntu from 203.0.113.42 port 40019 ssh2
+Oct 25 02:10:38 web01 sshd[1058]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=203.0.113.42  user=ubuntu
+Oct 25 02:10:40 web01 sshd[1059]: Failed password for root from 203.0.113.42 port 40020 ssh2
+Oct 25 02:10:40 web01 sshd[1060]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=203.0.113.42  user=root
+Oct 25 02:10:42 web01 sshd[1061]: Invalid user postgres from 203.0.113.42 port 40021
+Oct 25 02:10:42 web01 sshd[1062]: Failed password for invalid user postgres from 203.0.113.42 port 40021 ssh2
+Oct 25 02:10:42 web01 sshd[1063]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=203.0.113.42  user=postgres
+Oct 25 02:10:44 web01 sshd[1064]: Invalid user git from 203.0.113.42 port 40022
+Oct 25 02:10:44 web01 sshd[1065]: Failed password for invalid user git from 203.0.113.42 port 40022 ssh2
+Oct 25 02:10:44 web01 sshd[1066]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=203.0.113.42  user=git
+Oct 25 02:10:46 web01 sshd[1067]: Invalid user user from 203.0.113.42 port 40023
+Oct 25 02:10:46 web01 sshd[1068]: Failed password for invalid user user from 203.0.113.42 port 40023 ssh2
+Oct 25 02:10:46 web01 sshd[1069]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=203.0.113.42  user=user
+Oct 25 02:10:48 web01 sshd[1070]: Disconnected from authenticating user root 203.0.113.42 port 40099 [preauth]
+Oct 25 02:10:51 web01 sshd[1071]: Accepted password for ubuntu from 203.0.113.42 port 40100 ssh2
+Oct 25 02:20:00 web01 sshd[1072]: Failed password for invalid user deploy0 from 198.51.100.77 port 52000 ssh2
+Oct 25 02:22:30 web01 sshd[1073]: Failed password for invalid user deploy1 from 198.51.100.77 port 52001 ssh2
+Oct 25 02:25:00 web01 sshd[1074]: Failed password for invalid user deploy2 from 198.51.100.77 port 52002 ssh2
+Oct 25 02:27:30 web01 sshd[1075]: Failed password for invalid user deploy3 from 198.51.100.77 port 52003 ssh2
+Oct 25 02:30:00 web01 sshd[1076]: Failed password for invalid user deploy4 from 198.51.100.77 port 52004 ssh2
+Oct 25 02:30:00 web01 sshd[1096]: Failed password for root from 192.0.2.100 port 41000 ssh2
+Oct 25 02:30:07 web01 sshd[1097]: Failed password for root from 192.0.2.100 port 41001 ssh2
+Oct 25 02:30:14 web01 sshd[1098]: Failed password for root from 192.0.2.101 port 41010 ssh2
+Oct 25 02:30:21 web01 sshd[1099]: Failed password for root from 192.0.2.101 port 41011 ssh2
+Oct 25 02:30:28 web01 sshd[1100]: Failed password for root from 192.0.2.102 port 41020 ssh2
+Oct 25 02:30:35 web01 sshd[1101]: Failed password for root from 192.0.2.102 port 41021 ssh2
+Oct 25 02:30:42 web01 sshd[1102]: Failed password for root from 192.0.2.103 port 41030 ssh2
+Oct 25 02:30:49 web01 sshd[1103]: Failed password for root from 192.0.2.103 port 41031 ssh2
+Oct 25 02:30:56 web01 sshd[1104]: Failed password for root from 192.0.2.104 port 41040 ssh2
+Oct 25 02:31:03 web01 sshd[1105]: Failed password for root from 192.0.2.104 port 41041 ssh2
+Oct 25 02:31:10 web01 sshd[1106]: Failed password for root from 192.0.2.105 port 41050 ssh2
+Oct 25 02:31:17 web01 sshd[1107]: Failed password for root from 192.0.2.105 port 41051 ssh2
+Oct 25 02:31:24 web01 sshd[1108]: Failed password for root from 192.0.2.106 port 41060 ssh2
+Oct 25 02:31:31 web01 sshd[1109]: Failed password for root from 192.0.2.106 port 41061 ssh2
+Oct 25 02:31:38 web01 sshd[1110]: Failed password for root from 192.0.2.107 port 41070 ssh2
+Oct 25 02:31:45 web01 sshd[1111]: Failed password for root from 192.0.2.107 port 41071 ssh2
+Oct 25 02:31:52 web01 sshd[1112]: Failed password for root from 192.0.2.108 port 41080 ssh2
+Oct 25 02:31:59 web01 sshd[1113]: Failed password for root from 192.0.2.108 port 41081 ssh2
+Oct 25 02:32:06 web01 sshd[1114]: Failed password for root from 192.0.2.109 port 41090 ssh2
+Oct 25 02:32:13 web01 sshd[1115]: Failed password for root from 192.0.2.109 port 41091 ssh2
+Oct 25 02:32:20 web01 sshd[1116]: Failed password for root from 192.0.2.110 port 41100 ssh2
+Oct 25 02:32:27 web01 sshd[1117]: Failed password for root from 192.0.2.110 port 41101 ssh2
+Oct 25 02:32:30 web01 sshd[1077]: Failed password for invalid user deploy5 from 198.51.100.77 port 52005 ssh2
+Oct 25 02:32:34 web01 sshd[1118]: Failed password for root from 192.0.2.111 port 41110 ssh2
+Oct 25 02:32:41 web01 sshd[1119]: Failed password for root from 192.0.2.111 port 41111 ssh2
+Oct 25 02:35:00 web01 sshd[1078]: Failed password for invalid user deploy6 from 198.51.100.77 port 52006 ssh2
+Oct 25 02:37:30 web01 sshd[1079]: Failed password for invalid user deploy7 from 198.51.100.77 port 52007 ssh2
+Oct 25 02:40:00 web01 sshd[1080]: Failed password for invalid user deploy8 from 198.51.100.77 port 52008 ssh2
+Oct 25 02:42:30 web01 sshd[1081]: Failed password for invalid user deploy9 from 198.51.100.77 port 52009 ssh2
+Oct 25 02:45:00 web01 sshd[1082]: Failed password for invalid user deploy10 from 198.51.100.77 port 52010 ssh2
+Oct 25 02:45:00 web01 sshd[1120]: message repeated 8 times: [ Failed password for root from 198.51.100.5 port 22222 ssh2]
+Oct 25 02:45:00 web01 sshd[1121]: Connection closed by invalid user guest 198.51.100.9 port 33000 [preauth]
+Oct 25 02:45:03 web01 sshd[1122]: Connection closed by invalid user guest 198.51.100.9 port 33001 [preauth]
+Oct 25 02:45:06 web01 sshd[1123]: Connection closed by invalid user guest 198.51.100.9 port 33002 [preauth]
+Oct 25 02:45:09 web01 sshd[1124]: Connection closed by invalid user guest 198.51.100.9 port 33003 [preauth]
+Oct 25 02:45:12 web01 sshd[1125]: Connection closed by invalid user guest 198.51.100.9 port 33004 [preauth]
+Oct 25 02:45:15 web01 sshd[1126]: Connection closed by invalid user guest 198.51.100.9 port 33005 [preauth]
+Oct 25 02:47:00 web01 sshd[1127]: Failed password for invalid user x from 6.6.6.6 port 1 from 198.51.100.200 port 4444 ssh2
+Oct 25 02:47:30 web01 sshd[1083]: Failed password for invalid user deploy11 from 198.51.100.77 port 52011 ssh2
+Oct 25 02:50:00 web01 sshd[1084]: Failed password for invalid user deploy12 from 198.51.100.77 port 52012 ssh2
+Oct 25 02:50:00 web01 sshd[1128]: Failed password for root from 2001:db8::bad port 45000 ssh2
+Oct 25 02:50:01 web01 sshd[1129]: Failed password for root from 2001:db8::bad port 45001 ssh2
+Oct 25 02:50:02 web01 sshd[1130]: Failed password for root from 2001:db8::bad port 45002 ssh2
+Oct 25 02:50:03 web01 sshd[1131]: Failed password for root from 2001:db8::bad port 45003 ssh2
+Oct 25 02:50:04 web01 sshd[1132]: Failed password for root from 2001:db8::bad port 45004 ssh2
+Oct 25 02:50:05 web01 sshd[1133]: Failed password for root from 2001:db8::bad port 45005 ssh2
+Oct 25 02:52:30 web01 sshd[1085]: Failed password for invalid user deploy13 from 198.51.100.77 port 52013 ssh2
+Oct 25 02:55:00 web01 sshd[1086]: Failed password for invalid user deploy14 from 198.51.100.77 port 52014 ssh2
+Oct 25 02:57:30 web01 sshd[1087]: Failed password for invalid user deploy15 from 198.51.100.77 port 52015 ssh2
+Oct 25 03:00:00 web01 sshd[1088]: Failed password for invalid user deploy16 from 198.51.100.77 port 52016 ssh2
+Oct 25 03:02:30 web01 sshd[1089]: Failed password for invalid user deploy17 from 198.51.100.77 port 52017 ssh2
+Oct 25 03:05:00 web01 sshd[1090]: Failed password for invalid user deploy18 from 198.51.100.77 port 52018 ssh2
+Oct 25 03:07:30 web01 sshd[1091]: Failed password for invalid user deploy19 from 198.51.100.77 port 52019 ssh2
+Oct 25 03:10:00 web01 sshd[1092]: Failed password for invalid user deploy20 from 198.51.100.77 port 52020 ssh2
+Oct 25 03:12:30 web01 sshd[1093]: Failed password for invalid user deploy21 from 198.51.100.77 port 52021 ssh2
+Oct 25 03:15:00 web01 sshd[1094]: Failed password for invalid user deploy22 from 198.51.100.77 port 52022 ssh2
+Oct 25 03:17:30 web01 sshd[1095]: Failed password for invalid user deploy23 from 198.51.100.77 port 52023 ssh2

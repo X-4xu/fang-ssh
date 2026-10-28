@@ -1,0 +1,43 @@
+[Unit]
+Description=Fang SSH brute-force detector (live monitoring of sshd via journald)
+Documentation=https://github.com/X-4xu/fang
+After=ssh.service sshd.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/fang --journald --follow --no-color --config /etc/fang/fang.toml \
+    --jsonl /var/lib/fang/alerts.jsonl --blocklist-file /var/lib/fang/blocklist.txt
+Restart=on-failure
+RestartSec=5
+
+# Runs as a throw-away unprivileged user that can read the journal and nothing else.
+DynamicUser=yes
+SupplementaryGroups=systemd-journal
+StateDirectory=fang
+UMask=0077
+
+# Fang needs no network, no devices and no privileges.
+PrivateNetwork=yes
+PrivateDevices=yes
+PrivateTmp=yes
+RestrictAddressFamilies=AF_UNIX
+CapabilityBoundingSet=
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged @resources
+
+[Install]
+WantedBy=multi-user.target

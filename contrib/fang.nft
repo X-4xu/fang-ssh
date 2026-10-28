@@ -1,0 +1,17 @@
+# Example nftables ruleset that drops SSH from the addresses in Fang's blocklist.
+# Fang never loads this itself - review it, adapt the port, and allow your own IP first.
+table inet fang {
+    set blocklist4 {
+        type ipv4_addr
+        flags interval
+    }
+    set blocklist6 {
+        type ipv6_addr
+        flags interval
+    }
+    chain input {
+        type filter hook input priority -10; policy accept;
+        ip saddr @blocklist4 tcp dport 22 drop
+        ip6 saddr @blocklist6 tcp dport 22 drop
+    }
+}

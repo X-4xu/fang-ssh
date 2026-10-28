@@ -1,48 +1,17 @@
-# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-*$py.class
-
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
 *.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# Environments
-.env
-.venv
-env/
+.venv/
 venv/
-ENV/
-env.bak/
-venv.bak/
-
-# Testing and reports
-.pytest_cache/
+build/
+dist/
 .coverage
+.coverage.*
 htmlcov/
-*.log
-!tests/fixtures/*.log
-report.json
-output.json
-
-# IDEs
-.vscode/
-.idea/
-*.swp
-*.swo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+# Reports and alert logs contain IPs and usernames from your servers: never commit them.
+*.jsonl
+fang_report*.json
+blocklist*.txt

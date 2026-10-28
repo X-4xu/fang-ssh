@@ -1,8 +1,0 @@
-2026-09-19T08:12:00.100000+00:00 bastion sshd[3001]: Failed password for root from 203.0.113.42 port 51000 ssh2
-2026-09-19T08:12:03.200000+00:00 bastion sshd[3002]: Failed password for root from 203.0.113.42 port 51001 ssh2
-2026-09-19T08:12:05.300000+00:00 bastion sshd[3003]: Failed password for root from 203.0.113.42 port 51002 ssh2
-2026-09-19T08:12:08.400000+00:00 bastion sshd[3004]: Failed password for invalid user oracle from 203.0.113.42 port 51003 ssh2
-2026-09-19T08:12:11.500000+00:00 bastion sshd[3005]: Failed password for invalid user postgres from 203.0.113.42 port 51004 ssh2
-2026-09-19T08:12:14.600000+00:00 bastion sshd[3006]: Failed password for admin from 203.0.113.42 port 51005 ssh2
-2026-09-19T08:12:15.700000+00:00 bastion sshd[3007]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=203.0.113.42  user=admin
-2026-09-19T08:15:00.000000+00:00 bastion sshd[3010]: Accepted password for sysadmin from 198.51.100.20 port 44321 ssh2

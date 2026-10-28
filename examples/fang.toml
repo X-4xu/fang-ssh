@@ -1,0 +1,55 @@
+# Fang configuration. Every key is optional; command-line flags override this file.
+# Unknown sections or keys are rejected on purpose (a typo must not silently weaken detection).
+#
+#   fang --config /etc/fang/fang.toml --journald --follow
+
+[detection]
+# --- fast brute force: `threshold` failed attempts from one IP within `window` seconds
+threshold = 5
+window = 60
+# Seconds before the same alert may repeat. A *higher severity* is always reported at once.
+cooldown = 300
+
+# --- low-and-slow: `slow_threshold` attempts within `history_window` seconds (0 disables).
+# Must be >= threshold, otherwise fast bursts would be mislabeled as "slow".
+slow_threshold = 20
+history_window = 3600
+
+# --- distributed attack / password spraying:
+# `spray_threshold` different IPs failing against the SAME account within `spray_window` (0 disables).
+# On a busy public server "root" is attacked by many IPs all day; raise this or set 0 if it is noisy.
+spray_threshold = 10
+spray_window = 600
+
+# --- possible compromise: a successful login from an IP with at least this many recent failures (0 disables)
+compromise_failures = 3
+
+# Count "Connection closed by authenticating user ... [preauth]" as a failure
+# (at most once per connection, and only if no explicit "Failed ..." line was logged for it).
+count_preauth_disconnects = true
+
+# Failures against these accounts raise the severity.
+privileged_users = ["root", "admin", "administrator", "wheel"]
+
+# Memory bounds for long-running instances (defaults are fine for most servers).
+# max_tracked_ips = 25000
+# max_tracked_users = 25000
+# evidence_limit = 20
+
+[allowlist]
+# Trusted addresses / networks: never alert, never enter the blocklist.
+# Put your own admin IPs, VPN range and monitoring hosts here BEFORE enabling any blocking.
+networks = [
+    # "203.0.113.10",
+    # "10.0.0.0/8",
+    # "2001:db8:1234::/48",
+]
+
+[parsing]
+# Time zone of syslog timestamps that carry no offset (BSD style "Sep 19 10:00:10").
+# Use the server's zone, e.g. "Asia/Baghdad", or "local". Journald and ISO-8601 logs are unaffected.
+assume_timezone = "UTC"
+
+[output]
+# Minimum severity that enters --blocklist-file: "medium", "high" or "critical".
+blocklist_min_severity = "high"

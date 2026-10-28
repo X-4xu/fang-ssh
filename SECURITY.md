@@ -1,27 +1,38 @@
-# Security Policy
+# Security policy
 
-## Responsible Testing and Defensive Purpose
+## Reporting a vulnerability
 
-`Fang` is an open-source defensive monitoring tool designed to help system administrators and security engineers detect unauthorized access attempts and brute-force attacks against SSH servers.
+Please **do not open a public issue** for security problems. Use GitHub's private reporting:
+*Security* tab of the repository, then *Report a vulnerability*. Include the Fang version
+(`fang --version`), the smallest log line or command that reproduces the problem, and the impact
+you expect. You will get an answer within a few days; fixes ship as a patch release.
 
-- **Defensive Monitoring Only**: This tool only inspects local authentication logs. It does not perform network operations, port scanning, or active interception.
-- **Safe Parsing Guarantee**: All log data is considered untrusted input. The parser enforces bounded matching, validates IP addresses strictly using standard IP address representations, and never passes log data to shell execution environments.
+Supported versions: the latest `2.x` release.
 
-## Supported Versions
+## What Fang is designed to withstand
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.0.x   | :white_check_mark: |
+Fang reads attacker-influenced text (usernames, whole log lines) and often runs with extra
+privileges, so it is built to treat logs as hostile:
 
-## Reporting a Vulnerability
+| Threat | Defense |
+|---|---|
+| Account name forges a different source IP (`x from 6.6.6.6 port 1`) | Message patterns are anchored to the end of the line; the last `from <ip> port <n>` wins. Covered by tests for every message type. |
+| Terminal escape / bidi / control characters in log content | Everything printed or stored is reduced to printable characters. |
+| Regular-expression denial of service | Hard length limits before any regex runs; bounded-time tests on pathological lines. |
+| Memory exhaustion (many IPs, many usernames, huge lines, decompression bombs) | Capped LRU state, capped windows and evidence, 64 KiB line cap, `--max-bytes`. |
+| Symlink / FIFO tricks on output paths when run as root | Atomic replace (never follows a symlink), `O_NOFOLLOW`, regular-file checks, `O_NONBLOCK`. |
+| Command or option injection | No shell anywhere. The only subprocess is `journalctl` with a fixed argument list, resolved from a fixed system `PATH`; user text is passed as `--since=<value>`. |
+| Data leaking from reports | Output files are created with mode 0600. |
+| Network egress | The code imports no networking module. The systemd unit in `contrib/` runs with `PrivateNetwork=yes`. |
 
-If you discover a security vulnerability in `Fang`, please report it responsibly:
+## Known limits (please read)
 
-1. **Do not open a public GitHub issue.**
-2. Submit a private advisory via [GitHub Security Advisories](https://github.com/X-4xu/fang/security/advisories/new) or send an email directly to `hassanaliaa189@gmail.com`.
-3. Provide details regarding:
-   - Type of issue (e.g. ReDoS in parser, unhandled exception with untrusted input, path traversal in output file handling).
-   - Sample log lines that reproduce the issue.
-   - Potential impact.
-
-We will acknowledge receipt within 48 hours and work with you to release a patch promptly.
+- **Fang detects; it does not enforce.** The blocklist is a text file for *you* to load into your
+  firewall. Always add your own administrative addresses with `--allow` first.
+- Detection is heuristic. Shared NAT addresses can cause false positives for the
+  possible-compromise rule; very busy public servers can make the distributed-attack rule noisy.
+- Only OpenSSH message formats in English are understood. Other SSH servers are not supported.
+- Log lines can be forged by anyone who can write to the syslog socket on the same host; Fang
+  cannot tell. Restrict access to your logs.
+- Timestamps in classic syslog have no time zone or year; set `--assume-tz` (and `--year` for old
+  files) if the defaults do not match your server.
