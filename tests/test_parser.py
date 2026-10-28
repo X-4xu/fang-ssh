@@ -132,3 +132,81 @@ def test_missing_file_raises_error() -> None:
     parser = SshLogParser()
     with pytest.raises(FileNotFoundError):
         list(parser.parse_file("non_existent_file.log"))
+
+
+def test_follow_file_appends(tmp_path: Path) -> None:
+    import threading
+    import time
+
+    log_file = tmp_path / "auth_follow.log"
+    log_file.write_text(
+        "Sep 19 10:00:01 srv sshd[1]: Failed password for root from 192.0.2.1 port 22 ssh2\n",
+        encoding="utf-8",
+    )
+
+    parser = SshLogParser(reference_year=2026)
+    stop_event = threading.Event()
+    collected = []
+
+    def tail_worker():
+        for ev in parser.follow_file(
+            log_file, poll_interval=0.05, stop_event=stop_event
+        ):
+            collected.append(ev)
+
+    t = threading.Thread(target=tail_worker, daemon=True)
+    t.start()
+
+    time.sleep(0.15)
+    with open(log_file, "a", encoding="utf-8") as f:
+        f.write(
+            "Sep 19 10:00:05 srv sshd[2]: Failed password for admin from 192.0.2.1 port 22 ssh2\n"
+        )
+        f.flush()
+
+    time.sleep(0.15)
+    stop_event.set()
+    t.join(timeout=2.0)
+
+    assert len(collected) == 2
+    assert collected[0].username == "root"
+    assert collected[1].username == "admin"
+
+
+def test_follow_file_truncation(tmp_path: Path) -> None:
+    import threading
+    import time
+
+    log_file = tmp_path / "auth_trunc.log"
+    # Write a longer initial log line
+    log_file.write_text(
+        "Sep 19 10:00:01 srv sshd[1]: Failed password for root from 192.0.2.2 port 22 ssh2 [initial long line padding abcdefghijklmnopqrstuvwxyz]\n",
+        encoding="utf-8",
+    )
+
+    parser = SshLogParser(reference_year=2026)
+    stop_event = threading.Event()
+    collected = []
+
+    def tail_worker():
+        for ev in parser.follow_file(
+            log_file, poll_interval=0.05, stop_event=stop_event
+        ):
+            collected.append(ev)
+
+    t = threading.Thread(target=tail_worker, daemon=True)
+    t.start()
+
+    time.sleep(0.15)
+    # Truncate and write a shorter new line
+    log_file.write_text(
+        "Sep 19 10:00:10 srv sshd[3]: Failed password for user1 from 192.0.2.2 port 22 ssh2\n",
+        encoding="utf-8",
+    )
+
+    time.sleep(0.15)
+    stop_event.set()
+    t.join(timeout=2.0)
+
+    assert len(collected) == 2
+    assert collected[1].username == "user1"

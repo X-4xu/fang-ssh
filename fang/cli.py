@@ -44,6 +44,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Read SSH authentication logs directly from systemd journald (journalctl -u ssh -u sshd -o short-iso).",
     )
     parser.add_argument(
+        "-f",
+        "--follow",
+        action="store_true",
+        help="Continuously tail the authentication log file in real-time.",
+    )
+    parser.add_argument(
         "-t",
         "--threshold",
         type=int,
@@ -111,6 +117,8 @@ def run_analyzer(
     enable_net_access_hook: bool = False,
     quiet: bool = False,
     use_journalctl: bool = False,
+    follow: bool = False,
+    stop_event: Any | None = None,
     console: Console | None = None,
 ) -> tuple[AnalysisSummary, list[SecurityAlert]]:
     """
@@ -173,6 +181,12 @@ def run_analyzer(
             scan_start_time=datetime.now(timezone.utc),
         )
         event_stream = parser.parse_stream(sys.stdin)
+    elif follow:
+        summary = AnalysisSummary(
+            log_file_path=log_file,
+            scan_start_time=datetime.now(timezone.utc),
+        )
+        event_stream = parser.follow_file(log_file, stop_event=stop_event)
     else:
         summary = AnalysisSummary(
             log_file_path=log_file,
@@ -254,6 +268,7 @@ def main(argv: list[str] | None = None) -> int:
             enable_net_access_hook=args.enable_net_access_hook,
             quiet=args.quiet,
             use_journalctl=args.journalctl,
+            follow=args.follow,
             console=console,
         )
 
@@ -263,6 +278,10 @@ def main(argv: list[str] | None = None) -> int:
         if args.exit_code_on_alert and alerts:
             return 2
 
+        return 0
+
+    except KeyboardInterrupt:
+        console.print("\n[yellow][!] Stopped monitoring.[/yellow]")
         return 0
 
     except PermissionError as e:

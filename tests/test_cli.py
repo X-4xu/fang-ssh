@@ -132,3 +132,48 @@ def test_cli_journalctl_mock(monkeypatch) -> None:
     assert len(alerts) == 1
     assert alerts[0].source_ip == "198.51.100.22"
     assert alerts[0].failed_attempts_count == 5
+
+
+def test_run_analyzer_follow_mode(tmp_path: Path) -> None:
+    import threading
+    import time
+
+    log_file = tmp_path / "follow_cli.log"
+    log_file.write_text(
+        "Sep 19 10:00:01 srv sshd[1]: Failed password for root from 192.0.2.55 port 22 ssh2\n",
+        encoding="utf-8",
+    )
+
+    stop_event = threading.Event()
+    results = {}
+
+    def run_worker():
+        s, a = run_analyzer(
+            log_file=str(log_file),
+            threshold=2,
+            window=60,
+            follow=True,
+            stop_event=stop_event,
+            quiet=True,
+        )
+        results["summary"] = s
+        results["alerts"] = a
+
+    t = threading.Thread(target=run_worker, daemon=True)
+    t.start()
+
+    time.sleep(0.15)
+    with open(log_file, "a", encoding="utf-8") as f:
+        f.write(
+            "Sep 19 10:00:05 srv sshd[2]: Failed password for root from 192.0.2.55 port 22 ssh2\n"
+        )
+        f.flush()
+
+    time.sleep(0.15)
+    stop_event.set()
+    t.join(timeout=2.0)
+
+    assert "summary" in results
+    assert results["summary"].total_lines_read == 2
+    assert len(results["alerts"]) == 1
+    assert results["alerts"][0].source_ip == "192.0.2.55"
