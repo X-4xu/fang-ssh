@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fang-ssh"
-version = "1.0.0"
+version = "1.1.0"
 description = "SSH brute-force detector for Linux auth logs: sliding-window detection, severity scoring, and JSON evidence reports."
 readme = "README.md"
 requires-python = ">=3.10"

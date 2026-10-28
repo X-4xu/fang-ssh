@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-10-28
+
+### Added
+- **Standard Input & Journald Ingestion**: Support reading auth logs from stdin (`-l -` or piped) and directly from systemd-journald (`--journalctl` / `--journald` using `journalctl -u ssh -u sshd -o short-iso`).
+- **Live Log Tailing (`--follow` / `-f`)**: Real-time auth log monitoring with automatic detection of log rotations and file truncations.
+- **Possible Compromise Detection**: Correlates successful authentications (`Accepted password` / `Accepted publickey`) following repeated failures from the same source IP, raising a CRITICAL severity incident.
+- **Configurable Privilege Escalation (`--no-root-escalation`)**: Added option to disable automatic severity inflation for attempts targeting privileged accounts like `root` or `admin`.
+
 ## [1.0.0] - 2026-09-19
 
 ### Added

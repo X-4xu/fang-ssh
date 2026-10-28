@@ -69,7 +69,7 @@ pipx install git+https://github.com/X-4xu/fang-ssh.git
 ### 2. Pinned Release Version
 
 ```bash
-pipx install git+https://github.com/X-4xu/fang-ssh.git@v1.0.0
+pipx install git+https://github.com/X-4xu/fang-ssh.git@v1.1.0
 ```
 
 ### 3. One-Off Execution with `uvx` (Fast, zero-install)
@@ -81,7 +81,7 @@ uvx --from git+https://github.com/X-4xu/fang-ssh fang --help
 ### 4. Direct Wheel Installation from GitHub Releases
 
 ```bash
-pip install https://github.com/X-4xu/fang-ssh/releases/download/v1.0.0/fang_ssh-1.0.0-py3-none-any.whl
+pip install https://github.com/X-4xu/fang-ssh/releases/download/v1.1.0/fang_ssh-1.1.0-py3-none-any.whl
 ```
 
 ### 5. Docker Container (Self-Contained)
@@ -199,6 +199,38 @@ Detect 10 or more failed attempts within a 2-minute (120 seconds) window, export
 fang -l /var/log/auth.log -t 10 -w 120 -o report.json
 ```
 
+### Live Log Tailing (`--follow`)
+
+Continuously monitor authentication logs in real-time with automatic rotation handling:
+
+```bash
+fang -f -l /var/log/auth.log
+```
+
+### Systemd Journald Ingestion
+
+Directly ingest SSH authentication events from `systemd-journald`:
+
+```bash
+fang --journalctl
+```
+
+### Pipe via Stdin
+
+Stream logs directly into Fang from pipelines:
+
+```bash
+journalctl -u ssh -o short-iso | fang -l -
+```
+
+### Disable Root Severity Inflation
+
+By default, targeting `root` or `admin` escalates alert severity. To score strictly by attempt volume:
+
+```bash
+fang -l /var/log/auth.log --no-root-escalation
+```
+
 ### CI / Automation Mode
 
 Exit with status code `2` if an alert is detected (useful for automated security audit pipelines):
@@ -213,11 +245,14 @@ fang -l /var/log/auth.log --exit-code-on-alert -q -o report.json
 
 | Option | Flag | Default | Description |
 |---|---|---|---|
-| `--log-file` | `-l` | `/var/log/auth.log` | Path to log file (`/var/log/auth.log`, `/var/log/secure`, plaintext or `.gz`). |
+| `--log-file` | `-l` | `/var/log/auth.log` | Path to log file, or `-` for stdin (`/var/log/auth.log`, `/var/log/secure`, plaintext or `.gz`). |
+| `--follow` | `-f` | `False` | Continuously tail the log file in real-time. |
+| `--journalctl` | `--journald` | `False` | Ingest logs directly from `systemd-journald` (`journalctl -u ssh -u sshd -o short-iso`). |
 | `--threshold` | `-t` | `5` | Minimum failed attempts to trigger an alert. |
 | `--window` | `-w` | `60` | Duration of the sliding time window in seconds. |
 | `--cooldown` | `-c` | `300` | Cooldown period in seconds per source IP to prevent alert spam. |
 | `--output` | `-o` | `None` | Path to save the structured JSON report. |
+| `--no-root-escalation` | | `False` | Disable automatic severity inflation to HIGH for root/admin targets. |
 | `--quiet` | `-q` | `False` | Suppress alert panels; show only the summary table. |
 | `--verbose` | `-v` | `False` | Enable verbose debug logging. |
 | `--exit-code-on-alert` | | `False` | Exit with return code `2` if an alert is detected. |
