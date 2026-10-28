@@ -31,6 +31,14 @@ class EventType(str, Enum):
             EventType.AUTH_FAILURE,
         )
 
+    @property
+    def is_accepted(self) -> bool:
+        """Return True if this event represents a successful authentication."""
+        return self in (
+            EventType.ACCEPTED_PASSWORD,
+            EventType.ACCEPTED_PUBLICKEY,
+        )
+
 
 class AlertSeverity(str, Enum):
     """Severity classification for security alerts."""

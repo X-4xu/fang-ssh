@@ -137,3 +137,49 @@ def test_detector_privileged_user_severity() -> None:
     # Targeting root elevates severity to HIGH
     assert alerts[0].severity == AlertSeverity.HIGH
     assert "root" in alerts[0].target_usernames
+
+
+def test_detector_possible_compromise() -> None:
+    detector = BruteForceDetector(
+        threshold=5, window_seconds=60, min_failures_for_compromise=2
+    )
+
+    # 3 failures from 10.0.0.99
+    detector.process_event(make_event("10.0.0.99", seconds_offset=0, user="admin"))
+    detector.process_event(make_event("10.0.0.99", seconds_offset=5, user="root"))
+    detector.process_event(make_event("10.0.0.99", seconds_offset=10, user="user1"))
+
+    # Successful login shortly after
+    accepted_ev = make_event(
+        "10.0.0.99",
+        seconds_offset=15,
+        user="user1",
+        event_type=EventType.ACCEPTED_PASSWORD,
+    )
+    alert = detector.process_event(accepted_ev)
+
+    assert alert is not None
+    assert alert.severity == AlertSeverity.CRITICAL
+    assert "Possible Compromise" in alert.pattern
+    assert alert.source_ip == "10.0.0.99"
+    assert alert.failed_attempts_count == 3
+    assert len(alert.evidence_events) == 4
+    assert alert.evidence_events[-1].event_type == EventType.ACCEPTED_PASSWORD
+
+
+def test_detector_configurable_root_escalation() -> None:
+    # With escalate_privileged=False, root targeting does not force HIGH
+    detector = BruteForceDetector(
+        threshold=5, window_seconds=60, escalate_privileged=False
+    )
+    alerts = []
+
+    for i in range(5):
+        alert = detector.process_event(
+            make_event("10.0.0.1", seconds_offset=i * 2, user="root")
+        )
+        if alert:
+            alerts.append(alert)
+
+    assert len(alerts) == 1
+    assert alerts[0].severity == AlertSeverity.MEDIUM
