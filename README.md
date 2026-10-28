@@ -1,15 +1,104 @@
-# Fang: SSH Security & Brute-Force Log Analyzer
+# Fang: Defensive SSH Brute-Force Log Analyzer
 
-![fang banner](docs/banner.svg)
-
-[![CI](https://github.com/X-4xu/fang/actions/workflows/ci.yml/badge.svg)](https://github.com/X-4xu/fang/actions)
+[![CI](https://github.com/X-4xu/fang-ssh/actions/workflows/ci.yml/badge.svg)](https://github.com/X-4xu/fang-ssh/actions)
+[![GitHub Release](https://img.shields.io/github/v/release/X-4xu/fang-ssh?color=blue)](https://github.com/X-4xu/fang-ssh/releases)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-**Fang** is a lightweight, secure, and standalone Python security tool designed to monitor and parse Linux authentication logs (`/var/log/auth.log` and `/var/log/secure`), detect suspicious SSH login activity and brute-force attacks, and export structured JSON security alerts.
+**Fang** is a lightweight, defensive SSH brute-force log analyzer for Linux systems (`/var/log/auth.log` and `/var/log/secure`).  
+It uses an in-memory sliding time window to identify burst attacks, scores incident severity, and exports structured JSON reports with full evidence chains for audit and SIEM pipelines.
 
-Built with a **defensive-only, zero-trust** mindset, Fang treats all log data as untrusted text, enforces strict IP validation, and guarantees deterministic detection without heavy dependencies or system overhead.
+---
+
+## Comparison: Fang vs. Fail2ban vs. SSHGuard
+
+Fang is designed specifically for **safe, passive analysis and structured reporting**. It does **not** alter your firewall.
+
+| Feature | Fang (`fang-ssh`) | Fail2ban | SSHGuard |
+|---|---|---|---|
+| **Primary Role** | Log analysis, detection & forensic reporting | Active intrusion prevention & banning | Lightweight daemon banning |
+| **Firewall Modification** | **None** (Read-only; zero risk of admin lockout) | Modifies `iptables` / `nftables` | Modifies `iptables` / `pf` / `ipfw` |
+| **Output Formats** | Structured JSON reports & terminal tables | Plaintext logs / ban commands | Plaintext syslog entries |
+| **Forensic Evidence** | Full raw log line chains with line numbers | Timestamp and IP only | Blocked IP and score only |
+| **Detection Engine** | Rolling sliding-window with timestamp eviction | Fixed `findtime` bucket counters | Attack score accumulation |
+| **Dependencies** | Python 3.10+ & `rich` (CLI formatting) | Python & system utilities | Pure C (compiled binary) |
+| **Failure Modes** | Safe: reads logs, exits cleanly | Risk of self-DoS / accidental lockout | Risk of self-DoS / accidental lockout |
+
+---
+
+## Terminal Recording
+
+```
++----------------------------------------------------------------------------------------------------+
+|                                    Fang Terminal Preview                                           |
+|                                                                                                    |
+|  $ fang -l /var/log/auth.log -t 5 -w 60 -o report.json                                             |
+|                                                                                                    |
+|  +----------------- FANG ALERT: SSH BRUTE-FORCE DETECTED ------------------+                       |
+|  | Alert ID: ALERT-FANG-3B1B67A5                                           |                       |
+|  | Source IP: 203.0.113.42                                                 |                       |
+|  | Severity: HIGH                                                          |                       |
+|  | Failed Attempts: 5 (in 60s window)                                      |                       |
+|  | Target Users: admin, root                                               |                       |
+|  | Pattern: SSH Brute-Force: 5 failed attempts in 12.0s (Threshold: 5/60s) |                       |
+|  +-------------------------------------------------------------------------+                       |
+|                                                                                                    |
+|  Summary: Scanned 1,420 lines | 124 failed attempts | 2 alerts | Elapsed: 0.045s                   |
++----------------------------------------------------------------------------------------------------+
+```
+
+> **To record a live session**: Use [vhs](https://github.com/charmbracelet/vhs) or [asciinema](https://asciinema.org/):
+> ```bash
+> asciinema rec demo.cast -c "fang -l examples/sample_auth.log -t 5 -w 60"
+> ```
+
+---
+
+## Installation
+
+> [!IMPORTANT]
+> **Notice**: Fang is **NOT** published on PyPI. Do not run `pip install fang-ssh`: that name is not controlled by this project. Install directly from this GitHub repository using one of the methods below.
+
+### 1. Recommended: Using `pipx` (Isolated CLI application)
+
+```bash
+pipx install git+https://github.com/X-4xu/fang-ssh.git
+```
+
+### 2. Pinned Release Version
+
+```bash
+pipx install git+https://github.com/X-4xu/fang-ssh.git@v1.0.0
+```
+
+### 3. One-Off Execution with `uvx` (Fast, zero-install)
+
+```bash
+uvx --from git+https://github.com/X-4xu/fang-ssh fang --help
+```
+
+### 4. Direct Wheel Installation from GitHub Releases
+
+```bash
+pip install https://github.com/X-4xu/fang-ssh/releases/download/v1.0.0/fang_ssh-1.0.0-py3-none-any.whl
+```
+
+### 5. Docker Container (Self-Contained)
+
+```bash
+docker run --rm -v /var/log:/var/log:ro ghcr.io/x-4xu/fang-ssh:latest -l /var/log/auth.log
+```
+
+### 6. From Source (Development)
+
+```bash
+git clone https://github.com/X-4xu/fang-ssh.git
+cd fang-ssh
+python -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+```
 
 ---
 
@@ -54,79 +143,52 @@ Built with a **defensive-only, zero-trust** mindset, Fang treats all log data as
 |  - Real-time colored panels   |                         |  - Structured JSON report     |
 |  - Incident summary tables    |                         |  - Evidence event chain       |
 +-------------------------------+                         +-------------------------------+
-                                                                  |
-                                                                  v
-                                                  +-------------------------------+
-                                                  |    NetAccessControllerHook    |
-                                                  |  (Extensible Hook for Future  |
-                                                  |   Automated IP Blocking)      |
-                                                  +-------------------------------+
 ```
 
 ---
 
-## Key Features
+## Features
 
 - **Multi-Format Parsing**:
   - **Traditional BSD Syslog**: `Sep 19 14:32:10 host sshd[123]: Failed password for root from ...` (with automatic year rollover inference).
-  - **Modern RFC 3339 / ISO 8601**: `2026-09-19T08:12:34.567890+00:00 host sshd[123]: ...` (used by modern `systemd-journald` and Debian/Ubuntu releases).
-  - **Rotated Compressed Logs**: Reads `.gz` archives (e.g. `auth.log.1.gz`) seamlessly without manual unzipping.
-- **Sliding-Window Brute-Force Engine**:
-  - Employs a rolling time window (e.g., 5 failed attempts in 60 seconds) rather than static minute-aligned buckets.
-  - Automatic time-based eviction prevents false positives on slow/legitimate typos.
+  - **RFC 3339 / ISO 8601**: `2026-09-19T08:12:34.567890+00:00 host sshd[123]: ...`
+  - **Rotated Compressed Logs**: Reads `.gz` archives seamlessly without manual extraction.
+- **Sliding-Window Detection Engine**:
+  - Employs a rolling time window (e.g. 5 failed attempts in 60 seconds) rather than static minute-aligned buckets.
+  - Automatic time-based eviction prevents false positives on slow typos.
 - **Dynamic Severity Scoring**:
   - `CRITICAL`: $\ge 20$ attempts or $\ge 10$ attempts targeting privileged accounts (`root`, `admin`, `wheel`).
   - `HIGH`: $\ge 10$ attempts or any targeting of privileged accounts.
   - `MEDIUM`: Base threshold met ($\ge 5$ attempts within window).
-- **Anti-Spam Cooldown**:
+- **Anti-Spam Alert Cooldown**:
   - Suppresses duplicate alert spam for ongoing attacks from the same IP within a configurable cooldown window.
-- **Traceable Evidence Chain**:
+- **Traceable Forensic Evidence**:
   - Every alert contains the full raw log lines, original timestamps, targeted usernames, and port numbers.
-- **Future Integration Ready**:
-  - Includes a clean, safe extension point interface (`NetAccessControllerHook`) to integrate with `net-access-controller` for automated IP blocking in future deployments.
+- **Defensive Design**:
+  - Read-only: never modifies network tables or system configurations.
+  - Usernames and log lines are sanitized of non-printable ASCII control characters.
+  - IP candidates are validated with Python's standard `ipaddress` library before processing.
 
 ---
 
-## Installation
-
-### From Source
-
-```bash
-git clone https://github.com/X-4xu/fang.git
-cd fang
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-pip install -e .
-```
-
-### Install with Development Dependencies
-
-```bash
-pip install -e ".[dev]"
-```
-
----
-
-## Quick Start & CLI Usage
+## CLI Usage
 
 ### Basic Scan
 
-Scan the default system log (`/var/log/auth.log`):
-
 ```bash
-sudo fang
+fang -l /var/log/auth.log
 ```
 
 ### Scan RedHat / CentOS / Rocky Linux Log
 
 ```bash
-sudo fang --log-file /var/log/secure
+fang -l /var/log/secure
 ```
 
 ### Scan Rotated Gzip Archive
 
 ```bash
-sudo fang --log-file /var/log/auth.log.1.gz
+fang -l /var/log/auth.log.1.gz
 ```
 
 ### Custom Threshold and Window
@@ -134,15 +196,15 @@ sudo fang --log-file /var/log/auth.log.1.gz
 Detect 10 or more failed attempts within a 2-minute (120 seconds) window, exporting to JSON:
 
 ```bash
-fang --log-file /var/log/auth.log --threshold 10 --window 120 --output /var/log/fang_report.json
+fang -l /var/log/auth.log -t 10 -w 120 -o report.json
 ```
 
-### CI/CD / Automation Mode
+### CI / Automation Mode
 
-Exit with status code `2` if any brute-force incident is detected (useful for automated security pipelines and cron monitoring):
+Exit with status code `2` if an alert is detected (useful for automated security audit pipelines):
 
 ```bash
-fang --log-file /var/log/auth.log --exit-code-on-alert --quiet -o report.json
+fang -l /var/log/auth.log --exit-code-on-alert -q -o report.json
 ```
 
 ---
@@ -156,63 +218,16 @@ fang --log-file /var/log/auth.log --exit-code-on-alert --quiet -o report.json
 | `--window` | `-w` | `60` | Duration of the sliding time window in seconds. |
 | `--cooldown` | `-c` | `300` | Cooldown period in seconds per source IP to prevent alert spam. |
 | `--output` | `-o` | `None` | Path to save the structured JSON report. |
-| `--enable-net-access-hook` | | `False` | Enable dry-run hook for `net-access-controller`. |
-| `--quiet` | `-q` | `False` | Suppress real-time alert panels; show only the summary table. |
+| `--quiet` | `-q` | `False` | Suppress alert panels; show only the summary table. |
 | `--verbose` | `-v` | `False` | Enable verbose debug logging. |
 | `--exit-code-on-alert` | | `False` | Exit with return code `2` if an alert is detected. |
 | `--version` | | | Display version information. |
 
 ---
 
-## Sample Output
-
-### Terminal Alert Panel
-
-When Fang detects a brute-force pattern during analysis, it immediately renders an alert panel:
-
-```
-+----------------- FANG ALERT: SSH BRUTE-FORCE DETECTED ------------------+
-| Alert ID: ALERT-FANG-3B1B67A5                                           |
-| Source IP: 192.168.1.100                                                |
-| Severity: HIGH                                                          |
-| Failed Attempts: 5 (in 60s window)                                      |
-| Time Range: 2026-09-19 10:00:10 -> 10:00:22                             |
-| Target Users: admin, test, guest, root                                  |
-| Target Ports: 40001, 40002, 40003, 40004                                 |
-| Pattern: SSH Brute-Force: 5 failed attempts in 12.0s (Threshold: 5/60s) |
-+-------------------------------------------------------------------------+
-```
-
-### Terminal Summary Table
-
-```
-               Fang: SSH Security Analysis Summary                
-+----------------------------------------------------------------+
-| Metric                       | Value                           |
-|------------------------------+---------------------------------|
-| Log File Path                | /var/log/auth.log               |
-| Total Lines Scanned          | 1,420                           |
-| SSH Events Parsed            | 840                             |
-| Failed Login Attempts        | 124                             |
-| Unique Source IPs            | 12                              |
-| Brute-Force Alerts Triggered | 2                               |
-| Execution Time               | 0.045s                          |
-+----------------------------------------------------------------+
-
-                        Detected Brute-Force Incidents                         
-+-----------------------------------------------------------------------------+
-| Alert ID            | Source IP     | Severity | Attempts | Target Users    |
-|---------------------+---------------+----------+----------+-----------------|
-| ALERT-FANG-3B1B67A5 | 192.168.1.100 |   HIGH   |        5 | admin, root     |
-| ALERT-FANG-92FA4C10 | 203.0.113.42  | CRITICAL |       18 | root, oracle    |
-+-----------------------------------------------------------------------------+
-```
-
----
-
 ## Structured JSON Report Schema
 
-When running with `--output <path>`, Fang produces structured JSON reports:
+When running with `-o <path>`, Fang produces structured JSON reports:
 
 ```json
 {
@@ -266,58 +281,15 @@ When running with `--output <path>`, Fang produces structured JSON reports:
 
 ---
 
-## Extension Point: `net-access-controller`
-
-Fang is architected with a decoupled `ActionHandler` pattern. This enables seamless future integration with remediation tools such as **`net-access-controller`** to execute automated IP blocks without modifying the parsing or detection engines.
-
-### Safe by Design
-- **No Automatic Blocking in v1.0**: Active blocking is intentionally omitted in this release.
-- **Strict Safety Whitelist**: The hook enforces hardcoded immunity for loopback addresses (`127.0.0.1`, `::1`) and configured administrator IP ranges.
-- **Canonical Payload Generator**: Calling `NetAccessControllerHook.build_block_payload(alert)` creates the exact schema expected by `net-access-controller`:
-
-```json
-{
-  "schema_version": "1.0",
-  "action": "BLOCK_IP",
-  "target_ip": "192.168.1.100",
-  "reason": "SSH Brute-Force: 5 failed attempts in 12.0s (Threshold: 5/60s)",
-  "severity": "high",
-  "suggested_duration_seconds": 14400,
-  "evidence": {
-    "alert_id": "ALERT-FANG-3B1B67A5",
-    "failed_attempts": 5,
-    "time_window_seconds": 60,
-    "targeted_usernames": ["admin", "root"]
-  },
-  "triggered_by": "fang"
-}
-```
-
-To test the integration point in dry-run mode:
-```bash
-fang --log-file /var/log/auth.log --enable-net-access-hook
-```
-
----
-
-## Security Invariants & Defensive Design
-
-1. **Passive Inspection Only**: Fang never attempts network egress, packet manipulation, or reverse connections.
-2. **Untrusted Data Isolation**: Usernames, hosts, and raw log lines are stripped of non-printable ASCII control characters. Under no circumstances are parsed log fields passed to subshells or `eval()`.
-3. **Strict IP Validation**: All extracted IP candidates must pass Python's `ipaddress.ip_address()` validator. Malformed or spoofed IP fields in logs are discarded.
-4. **Denial-of-Service Defense**: Line lengths are capped at 4,096 characters to prevent ReDoS on corrupted or intentionally adversarial log streams. Streaming file readers ensure minimal memory consumption even on multi-gigabyte log archives.
-
----
-
 ## Testing
 
-Fang comes with a comprehensive test suite covering unit, integration, and malformed log edge cases.
+Fang comes with a test suite covering syslog and RFC 3339 parsing, sliding-window detection, and edge cases.
 
 ```bash
-# Run full test suite
+# Run tests
 pytest -v
 
-# Run with test coverage
+# Run with coverage report
 pytest --cov=fang --cov-report=term-missing
 ```
 

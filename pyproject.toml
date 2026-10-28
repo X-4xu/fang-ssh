@@ -3,21 +3,21 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "fang"
+name = "fang-ssh"
 version = "1.0.0"
-description = "Fast, secure, and extensible SSH log analyzer and brute-force detection engine for Linux."
+description = "SSH brute-force detector for Linux auth logs: sliding-window detection, severity scoring, and JSON evidence reports."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "MIT" }
+license = "MIT"
 authors = [
-    { name = "Hassan Ali (X-4xu)", email = "hassanaliaa189@gmail.com" }
+    { name = "Hassan Ali (X-4xu)" }
 ]
+keywords = ["ssh", "security", "brute-force", "intrusion-detection", "log-analysis", "blue-team", "linux"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "Intended Audience :: System Administrators",
     "Intended Audience :: Information Technology",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
@@ -43,8 +43,13 @@ dev = [
 fang = "fang.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/X-4xu/fang"
-Issues = "https://github.com/X-4xu/fang/issues"
+Homepage = "https://github.com/X-4xu/fang-ssh"
+Issues = "https://github.com/X-4xu/fang-ssh/issues"
+Changelog = "https://github.com/X-4xu/fang-ssh/blob/main/CHANGELOG.md"
+Source = "https://github.com/X-4xu/fang-ssh"
+
+[tool.setuptools]
+packages = ["fang", "fang.handlers"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
