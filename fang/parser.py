@@ -111,6 +111,66 @@ class SshLogParser:
             if event is not None:
                 yield event
 
+    def follow_file(
+        self,
+        file_path: str | Path,
+        poll_interval: float = 0.2,
+        stop_event: Any | None = None,
+    ) -> Iterator[SshAuthEvent]:
+        """
+        Continuously tail an auth.log file, yielding new events in real-time.
+        Handles file truncation and log rotation (inode replacement).
+        """
+        import os
+        import time
+
+        path = Path(file_path)
+        if not path.exists():
+            raise FileNotFoundError(f"Log file not found: {path}")
+
+        current_file = open(path, mode="r", encoding="utf-8", errors="replace")
+        try:
+            stat_info = os.fstat(current_file.fileno())
+            current_inode = (stat_info.st_ino, stat_info.st_dev)
+            line_number = self.lines_read
+
+            while stop_event is None or not stop_event.is_set():
+                line = current_file.readline()
+                if line:
+                    line_number += 1
+                    self.lines_read = line_number
+                    event = self.parse_line(line, line_number=line_number)
+                    if event is not None:
+                        yield event
+                    continue
+
+                # EOF reached, wait for more data
+                time.sleep(poll_interval)
+
+                # Check if file has been truncated or rotated
+                try:
+                    new_stat = os.stat(path)
+                    new_inode = (new_stat.st_ino, new_stat.st_dev)
+
+                    # Rotation detected (new file at path with different inode)
+                    if new_inode != current_inode:
+                        current_file.close()
+                        current_file = open(
+                            path, mode="r", encoding="utf-8", errors="replace"
+                        )
+                        current_inode = new_inode
+                        continue
+
+                    # Truncation detected (file size smaller than current position)
+                    if current_file.tell() > new_stat.st_size:
+                        current_file.seek(0)
+                        continue
+                except OSError:
+                    # File might be temporarily missing during rotation
+                    continue
+        finally:
+            current_file.close()
+
     def parse_line(self, raw_line: str, line_number: int = 0) -> SshAuthEvent | None:
         """
         Safely parse a single log line into an SshAuthEvent.
